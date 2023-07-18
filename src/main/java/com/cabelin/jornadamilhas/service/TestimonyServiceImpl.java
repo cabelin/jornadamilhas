@@ -10,9 +10,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TestimonyServiceImpl implements TestimonyService {
+
+  private static final int RANDOM_SIZE = 3;
 
   private final TestimonyRepository testimonyRepository;
 
@@ -58,6 +62,14 @@ public class TestimonyServiceImpl implements TestimonyService {
     if (testimonyRepository.existsById(id)) {
       testimonyRepository.deleteById(id);
     }
+  }
+
+  @Override
+  public List<TestimonyResponseDto> getRandomThree() {
+    return testimonyRepository.findRandomByLimit(RANDOM_SIZE)
+        .stream()
+        .map(TestimonyConverter::entityToResponse)
+        .toList();
   }
 
 }
