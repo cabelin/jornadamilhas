@@ -27,8 +27,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -175,4 +174,29 @@ public class TestimonyServiceTest {
     assertThat(testimonyResponseDto.getOwnerName(), is(ownerName));
   }
 
+  @Test
+  public void deleteTestimony_whenExists_thenCallRepository() {
+    Long id = 99L;
+
+    when(testimonyRepository.existsById(id)).thenReturn(true);
+
+    testimonyService.remove(id);
+
+    ArgumentCaptor<Long> idArgumentCaptor = ArgumentCaptor.forClass(Long.class);
+    verify(testimonyRepository).deleteById(idArgumentCaptor.capture());
+
+    Long idCalled = idArgumentCaptor.getValue();
+    assertThat(idCalled, is(99L));
+  }
+
+  @Test
+  public void deleteTestimony_whenNoExists_thenNoCallRepository() {
+    Long id = 99L;
+
+    when(testimonyRepository.existsById(id)).thenReturn(false);
+
+    testimonyService.remove(id);
+
+    verify(testimonyRepository, times(0)).deleteById(id);
+  }
 }

@@ -34,4 +34,11 @@ public class TestimonyController {
     return ResponseEntity.ok(testimonyService.update(id, testimonyRequestDto));
   }
 
+  @DeleteMapping("/{id}")
+  public ResponseEntity<TestimonyResponseDto> delete(@PathVariable Long id) {
+    testimonyService.remove(id);
+
+    return ResponseEntity.noContent().build();
+  }
+
 }

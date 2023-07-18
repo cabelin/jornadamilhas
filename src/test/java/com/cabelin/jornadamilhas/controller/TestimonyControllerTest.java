@@ -32,8 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -51,6 +50,7 @@ public class TestimonyControllerTest {
   public static class Paths {
     private static final String BASE_PATH = "/depoimentos";
     private static final String PUT_URL_TEMPLATE = BASE_PATH + "/{id}";
+    private static final String DELETE_URL_TEMPLATE = BASE_PATH + "/{id}";
 
     public static String postUrl() {
       return BASE_PATH;
@@ -62,6 +62,10 @@ public class TestimonyControllerTest {
 
     public static String putUrl(Long id) {
       return PUT_URL_TEMPLATE.replace("{id}", String.valueOf(id));
+    }
+
+    public static String deleteUrl(Long id) {
+      return DELETE_URL_TEMPLATE.replace("{id}", String.valueOf(id));
     }
 
   }
@@ -212,6 +216,17 @@ public class TestimonyControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(MapperUtil.serializeTestimonyRequestDto(dto)))
         .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+  }
+
+  @Test
+  public void deleteTestimony_whenDeleteTestimony_thenStatus200() throws Exception {
+    Long id = 49L;
+
+    doNothing().when(testimonyService).remove(id);
+
+    mvc.perform(delete(Paths.deleteUrl(id))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNoContent());
   }
 
   private static Stream<Arguments> providePageableParameters() {

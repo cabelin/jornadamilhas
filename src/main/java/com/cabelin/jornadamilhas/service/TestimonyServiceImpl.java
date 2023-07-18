@@ -53,4 +53,11 @@ public class TestimonyServiceImpl implements TestimonyService {
     );
   }
 
+  @Override
+  public void remove(Long id) {
+    if (testimonyRepository.existsById(id)) {
+      testimonyRepository.deleteById(id);
+    }
+  }
+
 }

@@ -13,4 +13,5 @@ public interface TestimonyService {
 
   TestimonyResponseDto update(Long id, TestimonyRequestDto testimonyRequestDto);
 
+  void remove(Long id);
 }
