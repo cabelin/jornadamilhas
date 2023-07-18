@@ -11,3 +11,6 @@ Content-Type: application/json
 
 ###
 
+GET {{host}}/depoimentos
+Content-Type: application/json
+
