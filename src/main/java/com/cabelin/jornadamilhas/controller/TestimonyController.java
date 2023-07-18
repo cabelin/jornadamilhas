@@ -29,4 +29,9 @@ public class TestimonyController {
     return ResponseEntity.ok(testimonyService.getAll(pageable));
   }
 
+  @PutMapping("/{id}")
+  public ResponseEntity<TestimonyResponseDto> put(@PathVariable Long id, @RequestBody @Validated TestimonyRequestDto testimonyRequestDto) {
+    return ResponseEntity.ok(testimonyService.update(id, testimonyRequestDto));
+  }
+
 }

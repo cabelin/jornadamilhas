@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -123,6 +124,55 @@ public class TestimonyServiceTest {
     assertThat(firstTestimonyResponseDto.getPhotoUrl(), is("Photo url 001"));
     assertThat(firstTestimonyResponseDto.getText(), is("Text 001"));
     assertThat(firstTestimonyResponseDto.getOwnerName(), is("Owner 001"));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "59, anyPhotoUrl, anyText, anyOwnerName",
+      "29, anyPhotoUrl2, anyText2, anyOwnerName2",
+      "39, anyPhotoUrl3, anyText3, anyOwnerName3"
+  })
+  public void updateTestimony_whenSave_thenReturnSavedElement(
+      Long id, String photoUrl, String text, String ownerName
+  ) {
+    TestimonyRequestDto testimonyRequestDto = TestimonyRequestDto.builder()
+        .photoUrl(photoUrl)
+        .text(text)
+        .ownerName(ownerName)
+        .build();
+
+    TestimonyEntity testimonyEntitySaved = TestimonyEntity.builder()
+        .id(id)
+        .photoUrl("photo")
+        .text("text")
+        .ownerName("ownerName")
+        .build();
+
+    when(testimonyRepository.findById(id)).thenReturn(Optional.of(testimonyEntitySaved));
+
+    when(testimonyRepository.save(any(TestimonyEntity.class)))
+        .thenReturn(TestimonyEntity.builder()
+            .id(id)
+            .photoUrl(photoUrl)
+            .text(text)
+            .ownerName(ownerName)
+            .build());
+
+    TestimonyResponseDto testimonyResponseDto = testimonyService.update(id, testimonyRequestDto);
+
+    ArgumentCaptor<TestimonyEntity> testimonyEntityArgumentCaptor = ArgumentCaptor.forClass(TestimonyEntity.class);
+    verify(testimonyRepository).save(testimonyEntityArgumentCaptor.capture());
+
+    TestimonyEntity testimonyEntity = testimonyEntityArgumentCaptor.getValue();
+    assertThat(testimonyEntity.getId(), is(id));
+    assertThat(testimonyEntity.getPhotoUrl(), is(photoUrl));
+    assertThat(testimonyEntity.getText(), is(text));
+    assertThat(testimonyEntity.getOwnerName(), is(ownerName));
+
+    assertThat(testimonyResponseDto.getId(), is(id));
+    assertThat(testimonyResponseDto.getPhotoUrl(), is(photoUrl));
+    assertThat(testimonyResponseDto.getText(), is(text));
+    assertThat(testimonyResponseDto.getOwnerName(), is(ownerName));
   }
 
 }

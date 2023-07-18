@@ -40,4 +40,17 @@ public class TestimonyServiceImpl implements TestimonyService {
         .map(TestimonyConverter::entityToResponse);
   }
 
+  @Override
+  public TestimonyResponseDto update(Long id, TestimonyRequestDto testimonyRequestDto) {
+    TestimonyEntity testimonyEntity = testimonyRepository.findById(id).orElseThrow();
+
+    testimonyEntity.setPhotoUrl(testimonyRequestDto.getPhotoUrl());
+    testimonyEntity.setText(testimonyRequestDto.getText());
+    testimonyEntity.setOwnerName(testimonyRequestDto.getOwnerName());
+
+    return TestimonyConverter.entityToResponse(
+        testimonyRepository.save(testimonyEntity)
+    );
+  }
+
 }

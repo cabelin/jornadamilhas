@@ -11,4 +11,6 @@ public interface TestimonyService {
 
   Page<TestimonyResponseDto> getAll(Pageable pageable);
 
+  TestimonyResponseDto update(Long id, TestimonyRequestDto testimonyRequestDto);
+
 }

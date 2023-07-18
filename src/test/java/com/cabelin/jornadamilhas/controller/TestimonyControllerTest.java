@@ -34,10 +34,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,7 +48,23 @@ public class TestimonyControllerTest {
   @MockBean
   private TestimonyService testimonyService;
 
-  private static String basePath = "/depoimentos";
+  public static class Paths {
+    private static final String BASE_PATH = "/depoimentos";
+    private static final String PUT_URL_TEMPLATE = BASE_PATH + "/{id}";
+
+    public static String postUrl() {
+      return BASE_PATH;
+    }
+
+    public static String getUrl() {
+      return BASE_PATH;
+    }
+
+    public static String putUrl(Long id) {
+      return PUT_URL_TEMPLATE.replace("{id}", String.valueOf(id));
+    }
+
+  }
 
   @Test
   public void createTestimony_whenPostTestimony_thenStatus200() throws Exception {
@@ -65,7 +79,7 @@ public class TestimonyControllerTest {
             .ownerName(testimonyRequestDto.getOwnerName())
             .build());
 
-    mvc.perform(post(basePath)
+    mvc.perform(post(Paths.postUrl())
             .contentType(MediaType.APPLICATION_JSON)
             .content(testimonyJson))
         .andExpect(status().isOk())
@@ -77,7 +91,7 @@ public class TestimonyControllerTest {
 
   @Test
   public void createTestimony_whenPostTestimonyNoBody_thenStatus400() throws Exception {
-    mvc.perform(post(basePath)
+    mvc.perform(post(Paths.postUrl())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
   }
@@ -93,7 +107,7 @@ public class TestimonyControllerTest {
         .ownerName(ownerName)
         .build();
 
-    mvc.perform(post(basePath)
+    mvc.perform(post(Paths.postUrl())
             .contentType(MediaType.APPLICATION_JSON)
             .content(MapperUtil.serializeTestimonyRequestDto(dto)))
         .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
@@ -104,7 +118,7 @@ public class TestimonyControllerTest {
     given(testimonyService.getAll(any(Pageable.class)))
         .willReturn(Page.empty());
 
-    mvc.perform(get(basePath)
+    mvc.perform(get(Paths.getUrl())
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("content", empty()))
@@ -131,7 +145,7 @@ public class TestimonyControllerTest {
 
     when(testimonyService.getAll(any(Pageable.class))).thenReturn(testimonyResponseDtoPage);
 
-    mvc.perform(get(basePath)
+    mvc.perform(get(Paths.getUrl())
             .contentType(MediaType.APPLICATION_JSON)
             .param("page", String.valueOf(page))
             .param("size", String.valueOf(size)))
@@ -147,6 +161,57 @@ public class TestimonyControllerTest {
     Pageable pageable = pageableCaptor.getValue();
     assertThat(pageable.getPageNumber()).isEqualTo(page);
     assertThat(pageable.getPageSize()).isEqualTo(size);
+  }
+
+  @Test
+  public void updateTestimony_whenPutTestimony_thenStatus200() throws Exception {
+    String testimonyJson = FileUtil.readFromFileToString("/files/testimony.json");
+    TestimonyRequestDto testimonyRequestDto = MapperUtil.deserializeTestimonyRequestDto(testimonyJson);
+
+    Long id = 49L;
+
+    given(testimonyService.update(any(Long.class), any(TestimonyRequestDto.class)))
+        .willReturn(TestimonyResponseDto.builder()
+            .id(id)
+            .photoUrl(testimonyRequestDto.getPhotoUrl())
+            .text(testimonyRequestDto.getText())
+            .ownerName(testimonyRequestDto.getOwnerName())
+            .build());
+
+    mvc.perform(put(Paths.putUrl(id))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(testimonyJson))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("id", is(49)))
+        .andExpect(jsonPath("photoUrl", is("http://localhost:8080/img")))
+        .andExpect(jsonPath("text", is("depoimento fictício")))
+        .andExpect(jsonPath("ownerName", is("José")));
+  }
+
+  @Test
+  public void putTestimony_whenPutTestimonyNoBody_thenStatus400() throws Exception {
+    mvc.perform(put(Paths.putUrl(39L))
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+  }
+
+  @ParameterizedTest
+  @CsvSource({",anyText,anyOwnerName", "anyPhotoUrl,,anyOwnerName", "anyPhotoUrl,anyText,", ",,"})
+  public void putTestimony_whenPutTestimonyInvalidBody_thenStatus400(
+      String photoUrl, String text, String ownerName
+  ) throws Exception {
+    TestimonyRequestDto dto = TestimonyRequestDto.builder()
+        .photoUrl(photoUrl)
+        .text(text)
+        .ownerName(ownerName)
+        .build();
+
+    Long id = 69L;
+
+    mvc.perform(put(Paths.putUrl(id))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(MapperUtil.serializeTestimonyRequestDto(dto)))
+        .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
   }
 
   private static Stream<Arguments> providePageableParameters() {
