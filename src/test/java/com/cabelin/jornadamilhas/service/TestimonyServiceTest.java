@@ -199,4 +199,44 @@ public class TestimonyServiceTest {
 
     verify(testimonyRepository, times(0)).deleteById(id);
   }
+
+  @Test
+  public void getRandomThreeTestimony_whenExists_thenReturn() {
+    List<TestimonyEntity> testimonyEntities = List.of(
+        TestimonyEntity.builder()
+            .id(5L)
+            .photoUrl("photoUrl001")
+            .text("text001")
+            .ownerName("ownerName001")
+            .build(),
+        TestimonyEntity.builder()
+            .id(6L)
+            .photoUrl("photoUrl002")
+            .text("text002")
+            .ownerName("ownerName002")
+            .build(),
+        TestimonyEntity.builder()
+            .id(7L)
+            .photoUrl("photoUrl002")
+            .text("text002")
+            .ownerName("ownerName002")
+            .build()
+    );
+
+    when(testimonyRepository.findRandomByLimit(3)).thenReturn(testimonyEntities);
+
+    List<TestimonyResponseDto> testimonyResponseDtos = testimonyService.getRandomThree();
+
+    ArgumentCaptor<Integer> quantity = ArgumentCaptor.forClass(Integer.class);
+    verify(testimonyRepository).findRandomByLimit(quantity.capture());
+
+    int quantityCalled = quantity.getValue();
+    assertThat(quantityCalled, is(3));
+
+    assertThat(testimonyEntities.size(), is(3));
+    assertThat(testimonyEntities.get(0).getId(), is(testimonyResponseDtos.get(0).getId()));
+    assertThat(testimonyEntities.get(1).getId(), is(testimonyResponseDtos.get(1).getId()));
+    assertThat(testimonyEntities.get(2).getId(), is(testimonyResponseDtos.get(2).getId()));
+  }
+
 }
